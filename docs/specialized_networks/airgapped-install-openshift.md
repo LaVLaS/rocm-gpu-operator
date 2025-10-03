@@ -25,14 +25,14 @@ rocm/k8s-node-labeller:rhubi-latest
 
 Since this image is built in situ this procedure will differ from the images for the various GPU Operator components such as the labeler and device-plugin
 
-A. Use basic DeviceConfig Custom Resource (CR), this will trigger a build when created and put the precompiled driver in the default imagestream location (image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/amdgpu_kmod) 
+A. Use basic DeviceConfig Custom Resource (CR), this will trigger a build when created and put the precompiled driver in the default imagestream location (image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/amdgpu_kmod) 
 
 ```yaml
 apiVersion: amd.com/v1alpha1
 kind: DeviceConfig
 metadata:
   name: devconf
-  namespace: kube-amd-gpu
+  namespace: openshift-amd-gpu
 spec:
   driver:
     enable: true
@@ -48,41 +48,41 @@ spec:
 
 B. Create the CR to trigger the build process.
 ```bash
-$ oc create -f myDeviceConfig.y -n kube-amd-gpu
+$ oc create -f myDeviceConfig.y -n openshift-amd-gpu
 deviceconfig.amd.com/devconf created
 ```
 
 C. Observe the build process complete. 
 ```bash
-$ oc get pods -n kube-amd-gpu | grep build
+$ oc get pods -n openshift-amd-gpu | grep build
 devconf-build-trzb6-build                              1/1     Running    0          12s
 
 # observe build using oc log command
-$ oc logs devconf-build-trzb6-build -n kube-amd-gpu
+$ oc logs devconf-build-trzb6-build -n openshift-amd-gpu
 ```
 
 D. Once the build is complete, verify that the precompiled image is located in the internal registry.
 ```bash
-$ oc get is -n kube-amd-gpu
+$ oc get is -n openshift-amd-gpu
 NAME                      IMAGE REPOSITORY                                                                        TAGS                                            UPDATED
-amdgpu_kmod               image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/amdgpu_kmod               coreos-9.6-5.14.0-570.19.1.el9_6.x86_64-6.4.1   3 days ago
+amdgpu_kmod               image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/amdgpu_kmod               coreos-9.6-5.14.0-570.19.1.el9_6.x86_64-6.4.1   3 days ago
 ```
 
 ### 2. Import required images
 
 A. Import the device-labeller and device-plugin images from docker into your internal registry 
 ```bash
-oc import-image rocm/k8s-device-plugin:rhubi-latest -n kube-amd-gpu --confirm 
-oc import-image rocm/k8s-node-labeller:rhubi-latest -n kube-amd-gpu --confirm
+oc import-image rocm/k8s-device-plugin:rhubi-latest -n openshift-amd-gpu --confirm 
+oc import-image rocm/k8s-node-labeller:rhubi-latest -n openshift-amd-gpu --confirm
 ```
 
 B. Once imported, verify that the required images are located in the internal registry. 
 ```bash
-$ oc get is -n kube-amd-gpu
+$ oc get is -n openshift-amd-gpu
 NAME                      IMAGE REPOSITORY                                                                        TAGS                                            UPDATED
-amdgpu_kmod               image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/amdgpu_kmod               coreos-9.6-5.14.0-570.19.1.el9_6.x86_64-6.4.1   3 days ago
-k8s-device-plugin         image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/k8s-device-plugin         rhubi-latest                                    2 hours ago
-k8s-node-labeller         image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/k8s-node-labeller         rhubi-latest                                    2 hours ago
+amdgpu_kmod               image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/amdgpu_kmod               coreos-9.6-5.14.0-570.19.1.el9_6.x86_64-6.4.1   3 days ago
+k8s-device-plugin         image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/k8s-device-plugin         rhubi-latest                                    2 hours ago
+k8s-node-labeller         image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/k8s-node-labeller         rhubi-latest                                    2 hours ago
 ```
 
 ### 3. Deployment of DeviceConfig in disconnected environment
@@ -93,16 +93,16 @@ apiVersion: amd.com/v1alpha1
 kind: DeviceConfig
 metadata:
   name: devconf
-  namespace: kube-amd-gpu
+  namespace: openshift-amd-gpu
 spec:
   driver:
-    image: image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/amdgpu_kmod
+    image: image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/amdgpu_kmod
     enable: true
     version: "6.4.1"
 
   devicePlugin:
-    devicePluginImage: image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/k8s-device-plugin:rhubi-latest
-    nodeLabellerImage: image-registry.openshift-image-registry.svc:5000/kube-amd-gpu/k8s-node-labeller:rhubi-latest
+    devicePluginImage: image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/k8s-device-plugin:rhubi-latest
+    nodeLabellerImage: image-registry.openshift-image-registry.svc:5000/openshift-amd-gpu/k8s-node-labeller:rhubi-latest
 
   selector:
     feature.node.kubernetes.io/amd-gpu: "true"

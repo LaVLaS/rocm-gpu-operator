@@ -236,7 +236,7 @@ spec:
 Finally please verify the NFD label is applied:
 
 ```bash
-oc get node -o yaml | grep "amd-gpu"
+oc get node -l feature.node.kubernetes.io/amd-gpu=true
 ```
 
 ### 2. Create blacklist (for installing out-of-tree kernel module)

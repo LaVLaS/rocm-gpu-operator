@@ -13,6 +13,7 @@ PROJECT_VERSION ?= v0.0.1
 TOP_DIR = $(PWD)
 GOFLAGS := "-mod=mod"
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
+DISTROBOX_TOOL ?= /usr/bin/distrobox
 CONTAINER_TOOL ?= docker
 DOCKER_REGISTRY ?= docker.io/rocm
 IMAGE_NAME ?= amd-gpu-operator
@@ -174,6 +175,11 @@ docker/shell: docker-build-env ## Bring up and attach to a container that has de
 		-w $(CONTAINER_WORKDIR) \
 		$(DOCKER_BUILDER_IMAGE) \
 		"cd /gpu-operator && git config --global --add safe.directory /gpu-operator && bash"
+
+.PHONY: distrobox/shell
+distrobox/shell: distrobox-build-env ## Bring up and attach to a container that has dev environment configured.
+	@echo "Starting a shell in the Distrobox build container..."
+	@$(DISTROBOX_TOOL) enter --name gpu-operator-build
 
 .PHONY: all
 all: generate manager manifests helm-k8s bundle-build docker-build
@@ -380,6 +386,16 @@ docker-build-env: ## Build the docker shell container.
 			-t $(DOCKER_BUILDER_IMAGE) \
 			--build-arg BUILD_BASE_IMG=$(BUILD_BASE_IMG) \
 			-f Dockerfile.build .; \
+	fi
+
+.PHONY: distrobox-build-env
+distrobox-build-env: docker-build-env
+	@echo "Creating the distrobox environment..."
+	@if [ -f "$(DISTROBOX_TOOL)" ]; then \
+		distrobox create --image $(DOCKER_BUILDER_IMAGE) gpu-operator-build; \
+	else \
+		echo "ERROR: distrobox not found in PATH" >&2; \
+		exit 1; \
 	fi
 
 .PHONY: helm

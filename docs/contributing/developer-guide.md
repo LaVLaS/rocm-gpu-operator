@@ -9,9 +9,10 @@ This project is not ready yet to accept the external developers commits.
 ## Prerequisites
 
 - Go v1.20 (due to [open issues](https://github.com/golang/go/issues/65637) with Go v1.21 or v1.22)
-- Docker
+- [Docker](https://docs.docker.com/get-started/) or [Podman](https://podman.io/get-started)
 - Kubernetes cluster (v1.29.0+) or OpenShift (4.16+)
 - `kubectl` or `oc` CLI tool configured to access your cluster
+- [distrobox](https://distrobox.it/) to build the gpu-operator container image in a containerized dev environment
 
 ## Development Environment Setup
 
